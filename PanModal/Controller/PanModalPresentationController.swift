@@ -604,7 +604,7 @@ private extension PanModalPresentationController {
         guard
             isPresentedViewAnchored,
             let scrollView = presentable?.panScrollable,
-            scrollView.contentOffset.y > 0
+            scrollView.contentOffset.y > -scrollView.contentInset.top
             else {
                 return false
         }
@@ -689,6 +689,15 @@ private extension PanModalPresentationController {
      This allows us to track scrolling without overriding the scrollView delegate
      */
     func observe(scrollView: UIScrollView?) {
+        /**
+         Set this value incase we have a UIScrollView with a non-zero contentInset
+         */
+        if let scrollView = scrollView,
+            scrollView.contentInset.top != 0,
+            scrollViewYOffset == 0 {
+            scrollViewYOffset = -scrollView.contentInset.top
+        }
+
         scrollObserver?.invalidate()
         scrollObserver = scrollView?.observe(\.contentOffset, options: .old) { [weak self] scrollView, change in
 
@@ -718,7 +727,7 @@ private extension PanModalPresentationController {
             !presentedViewController.isBeingPresented
             else { return }
 
-        if !isPresentedViewAnchored && scrollView.contentOffset.y > 0 {
+        if !isPresentedViewAnchored && scrollView.contentOffset.y > scrollView.contentInset.top {
 
             /**
              Hold the scrollView in place if we're actively scrolling and not handling top bounce
@@ -741,7 +750,7 @@ private extension PanModalPresentationController {
             }
 
         } else if presentedViewController.view.isKind(of: UIScrollView.self)
-            && !isPresentedViewAnimating && scrollView.contentOffset.y <= 0 {
+            && !isPresentedViewAnimating && scrollView.contentOffset.y <= -scrollView.contentInset.top {
 
             /**
              In the case where we drag down quickly on the scroll view and let go,
@@ -757,7 +766,7 @@ private extension PanModalPresentationController {
      Halts the scroll of a given scroll view & anchors it at the `scrollViewYOffset`
      */
     func haltScrolling(_ scrollView: UIScrollView) {
-        scrollView.setContentOffset(CGPoint(x: 0, y: scrollViewYOffset), animated: false)
+        scrollView.setContentOffset(CGPoint(x: -scrollView.contentInset.left, y: scrollViewYOffset), animated: false)
         scrollView.showsVerticalScrollIndicator = false
     }
 
@@ -766,7 +775,7 @@ private extension PanModalPresentationController {
      This helps halt scrolling when we want to hold the scroll view in place.
      */
     func trackScrolling(_ scrollView: UIScrollView) {
-        scrollViewYOffset = max(scrollView.contentOffset.y, 0)
+        scrollViewYOffset = max(scrollView.contentOffset.y, -scrollView.contentInset.top)
         scrollView.showsVerticalScrollIndicator = true
     }
 
@@ -785,7 +794,8 @@ private extension PanModalPresentationController {
         guard let oldYValue = change.oldValue?.y
             else { return }
 
-        let yOffset = scrollView.contentOffset.y
+        let oldYOffset = oldYValue + scrollView.contentInset.top
+        let yOffset = scrollView.contentOffset.y + scrollView.contentInset.top
         let presentedSize = containerView?.frame.size ?? .zero
 
         /**
@@ -794,7 +804,7 @@ private extension PanModalPresentationController {
          */
         presentedView.bounds.size = CGSize(width: presentedSize.width, height: presentedSize.height + yOffset)
 
-        if oldYValue > yOffset {
+        if oldYOffset > yOffset {
             /**
              Move the view in the opposite direction to the decreasing bounds
              until half way through the deceleration so that it appears
@@ -802,7 +812,7 @@ private extension PanModalPresentationController {
              */
             presentedView.frame.origin.y = longFormYPosition - yOffset
         } else {
-            scrollViewYOffset = 0
+            scrollViewYOffset = -scrollView.contentInset.top
             snap(toYPosition: longFormYPosition)
         }
 
