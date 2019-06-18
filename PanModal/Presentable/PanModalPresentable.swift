@@ -157,6 +157,11 @@ public protocol PanModalPresentable: AnyObject {
      Default value is true.
      */
     var showDragIndicator: Bool { get }
+    
+    /**
+    The color of the drag indicator
+    */
+    var dragIndicatorColor: UIColor { get }
 
     /**
      Asks the delegate if the pan modal should respond to the pan modal gesture recognizer.

@@ -88,6 +88,10 @@ public extension PanModalPresentable where Self: UIViewController {
         return shouldRoundTopCorners
     }
 
+    var dragIndicatorColor: UIColor {
+        return .lightGray
+    }
+
     func shouldRespond(to panModalGestureRecognizer: UIPanGestureRecognizer) -> Bool {
         return true
     }

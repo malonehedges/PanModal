@@ -131,7 +131,6 @@ public class PanModalPresentationController: UIPresentationController {
      */
     private lazy var dragIndicatorView: UIView = {
         let view = UIView()
-        view.backgroundColor = .lightGray
         view.layer.cornerRadius = Constants.dragIndicatorSize.height / 2.0
         return view
     }()
@@ -348,6 +347,7 @@ private extension PanModalPresentationController {
 
         if presentable.showDragIndicator {
             addDragIndicatorView(to: presentedView)
+            dragIndicatorView.backgroundColor = presentable.dragIndicatorColor
         }
 
         if presentable.shouldRoundTopCorners {
@@ -401,7 +401,7 @@ private extension PanModalPresentationController {
     func addDragIndicatorView(to view: UIView) {
         view.addSubview(dragIndicatorView)
         dragIndicatorView.translatesAutoresizingMaskIntoConstraints = false
-        dragIndicatorView.bottomAnchor.constraint(equalTo: view.topAnchor, constant: -Constants.indicatorYOffset).isActive = true
+        dragIndicatorView.topAnchor.constraint(equalTo: view.topAnchor, constant: Constants.indicatorYOffset).isActive = true
         dragIndicatorView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         dragIndicatorView.widthAnchor.constraint(equalToConstant: Constants.dragIndicatorSize.width).isActive = true
         dragIndicatorView.heightAnchor.constraint(equalToConstant: Constants.dragIndicatorSize.height).isActive = true
